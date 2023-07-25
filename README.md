@@ -1,81 +1,91 @@
-# Proexe
+# Proexe Dynamic Tables notes
 
-Dynamic tables
+Hello whomever you are :) \
+There are two branches:\
+`clean_architecture` I designed the solution using clean architecture and ports and adapters pattern with the exception that instead implement mappers for business entities I relay on Protocol abstractions of django models which then pass them directly ommiting the step of mapping. Anyways it relays on on abstraction so it not depends on anything django related so its clean.\
+The advantages of this solution is that it is easy to switch database underneath or even the django framework itself.\
 
-[![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
-[![Black code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+`the_django_way` The complete solution according to fat models ideology promoted by django docs and *Two scoops of django* book. **++Important note on updating model, due to limited time I had I decided to simplify the update table process by deleting the old model with all data and create a new one++**. I can implement the complete solution if you need me to do so or discuss it live further. \
+The obvious disadvantage of this solution is that business logic is in models which tightly couple us with django and Postgres.
 
-License: MIT
+There is also quite popular and battle tested hacksoftware way [link](https://github.com/HackSoftware/Django-Styleguide). I also was implementing and using this approach. it separates more business logic from models not putting everything there or managers. I can reimplement solution if needed.
 
-## Settings
 
-Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings.html).
+To run project just type:
 
-## Basic Commands
-
-### Setting Up Your Users
-
-- To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
-
-- To create a **superuser account**, use this command:
-
-      $ python manage.py createsuperuser
-
-For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
-
-### Type checks
-
-Running type checks with mypy:
-
-    $ mypy proexe
-
-### Test coverage
-
-To run the tests, check your test coverage, and generate an HTML coverage report:
-
-    $ coverage run -m pytest
-    $ coverage html
-    $ open htmlcov/index.html
-
-#### Running tests with pytest
-
-    $ pytest
-
-### Live reloading and Sass CSS compilation
-
-Moved to [Live reloading and SASS compilation](https://cookiecutter-django.readthedocs.io/en/latest/developing-locally.html#sass-compilation-live-reloading).
-
-### Celery
-
-This app comes with Celery.
-
-To run a celery worker:
-
-```bash
-cd proexe
-celery -A config.celery_app worker -l info
+```plain
+docker compose -f local.yml build
+docker compose -f local.yml up
+docker compose -f local.yml run --rm django python manage.py migrate
+docker compose -f local.yml run --rm django python manage.py createsuperuser
 ```
 
-Please note: For Celery's import magic to work, it is important _where_ the celery commands are run. If you are in the same folder with _manage.py_, you should be right.
+Then create token to use in the api.
 
-To run [periodic tasks](https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html), you'll need to start the celery beat scheduler service. You can start it as a standalone process:
+Create table payload:
 
-```bash
-cd proexe
-celery -A config.celery_app beat
+<http://localhost:8000/api/table/>
+
+```json
+{
+    "name": "test_table",
+    "fields": [
+        {
+            "name": "test_string",
+            "type": "STRING"
+        },
+        {
+            "name": "test_number",
+            "type": "NUMBER"
+        },
+        {
+            "name": "test_bool",
+            "type": "BOOLEAN"
+        }
+    ],
+    "description": "test_description"
+}
 ```
 
-or you can embed the beat service inside a worker with the `-B` option (not recommended for production use):
+Update table:
 
-```bash
-cd proexe
-celery -A config.celery_app worker -B -l info
+<http://localhost:8000/api/table/><uuid>/
+
+```json
+{
+    "name": "another_test_table",
+    "fields": [
+        {
+            "name": "another_test_string",
+            "type": "STRING"
+        },
+        {
+            "name": "another_test_number",
+            "type": "NUMBER"
+        },
+        {
+            "name": "another_test_bool",
+            "type": "BOOLEAN"
+        }
+    ],
+    "description": "test_description"
+}
 ```
 
-## Deployment
+Create table data payload:
 
-The following details how to deploy this application.
+<http://localhost:8000/api/table/><uuid>/row/
 
-### Docker
+```json
+{
+    "test_string": "test",
+    "test_number": 1,
+    "test_boolean": true
+}
+```
 
-See detailed [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html).
+Retrive table data:
+
+<http://localhost:8000/api/table/><uuid>/rows/
+
+
