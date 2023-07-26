@@ -1,55 +1,38 @@
-from django.db.models import QuerySet
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
+from rest_framework import serializers, status
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.views import APIView
 
-from proexe.dynamic_tables.api.serializers import DynamicTableSerializer
-from proexe.dynamic_tables.builders.dynamic_table_serializer_builder import DynamicTableSerializerBuilder
-from proexe.dynamic_tables.models import DynamicTable
+from proexe.api.utils import inline_model_serializer
+from proexe.dynamic_tables.models import Field, Table
+from proexe.dynamic_tables.services import TableService
 
 
-class DynamicTableViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
-    queryset = DynamicTable.objects.all()
-    serializer_class = DynamicTableSerializer
+class TableCreateApi(APIView):
+    class InputSerializer(serializers.ModelSerializer):
+        name = serializers.CharField(max_length=38)  # With additional user and app namespace max name will be
+        fields = inline_model_serializer(model=Field, model_fields=["name", "type"], many=True)
 
-    def get_queryset(self) -> QuerySet[DynamicTable]:
-        queryset = super().get_queryset()
-        queryset = queryset.filter(user=self.request.user)
+        class Meta:
+            model = Table
+            fields = [
+                "uuid",
+                "name",
+                "fields"
+                # "meta", # For future development
+            ]
 
-        return queryset
+    OutputSerializer = InputSerializer
 
-    def perform_create(self, serializer: DynamicTableSerializer) -> None:
-        serializer.save(user=self.request.user)
-
-    def perform_update(self, serializer: DynamicTableSerializer) -> None:
-        serializer.save(user=self.request.user)
-
-    @action(detail=True, methods=["get"])
-    def rows(self, request, pk=None):
-        dynamic_table_serializer_builder = DynamicTableSerializerBuilder()
-        dynamic_table = self.get_object()
-        serializer_class = dynamic_table_serializer_builder.build(dynamic_table)
-        queryset = dynamic_table.dynamic_table_model.objects.all()
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = serializer_class(page, many=True)
-
-            return self.get_paginated_response(serializer.data)
-
-        serializer = serializer_class(queryset, many=True)
-
-        return Response(serializer.data)
-
-    @action(detail=True, methods=["post"])
-    def row(self, request, pk=None):
-        dynamic_table_serializer_builder = DynamicTableSerializerBuilder()
-        dynamic_table = self.get_object()
-        serializer_class = dynamic_table_serializer_builder.build(dynamic_table)
-        serializer = serializer_class(data=request.data)
+    def post(self, request, *args, **kwargs):
+        serializer = self.InputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+
+        table_service = TableService()
+
+        table = table_service.create(
+            name=serializer.validated_data["name"], fields=serializer.validated_data["fields"], user=request.user
+        )
+
+        serializer = self.OutputSerializer(table)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)

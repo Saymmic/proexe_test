@@ -3,7 +3,8 @@ from typing import Type
 from django.db import models
 
 from proexe.dynamic_tables.builders.dynamic_field_builder import DynamicFieldsBuilder
-from proexe.dynamic_tables.models import DynamicTable
+from proexe.dynamic_tables.models import Table
+from proexe.dynamic_tables.types import DjangoModelType
 
 
 class DynamicTableModelBuilder:
@@ -14,16 +15,16 @@ class DynamicTableModelBuilder:
     def __init__(self, field_builder: DynamicFieldsBuilder) -> None:
         self._field_builder = field_builder
 
-    def _build_name(self, dynamic_table: DynamicTable) -> str:
+    def _build_name(self, table: Table) -> str:
         """
         Use the user as a namespace to avoid name collisions.
         """
-        return f"{dynamic_table.user.username}_{dynamic_table.name}"
+        return f"{table.user.username}_{table.name}"
 
-    def _build_fields(self, dynamic_table: DynamicTable) -> dict[str, models.Field]:
-        return self._field_builder.build(dynamic_table.dynamic_fields.all())
+    def _build_fields(self, table: Table) -> dict[str, models.Field]:
+        return self._field_builder.build(table.fields.all())
 
-    def _build_meta(self, dynamic_tabel: DynamicTable) -> Type:
+    def _build_meta(self, dynamic_tabel: Table) -> Type:
         class Meta:
             pass
 
@@ -32,12 +33,12 @@ class DynamicTableModelBuilder:
 
         return Meta
 
-    def build(self, dynamic_table: DynamicTable) -> Type[models.Model]:
-        name = self._build_name(dynamic_table)
-        fields = self._build_fields(dynamic_table)
-        meta = self._build_meta(dynamic_table)
+    def build(self, table: Table) -> type[DjangoModelType]:
+        name = self._build_name(table)
+        fields = self._build_fields(table)
+        meta = self._build_meta(table)
 
-        model: Type[models.Model] = type(
+        model: type[DjangoModelType] = type(
             name, (models.Model,), {"__module__": "proexe.dynamic_tables.models", "Meta": meta, **fields}
         )  # noqa
 

@@ -8,7 +8,7 @@ The advantages of this solution is that it is easy to switch database underneath
 `the_django_way` The complete solution according to fat models ideology promoted by django docs and *Two scoops of django* book. **++Important note on updating model, due to limited time I had I decided to simplify the update table process by deleting the old model with all data and create a new one++**. I can implement the complete solution if you need me to do so or discuss it live further. \
 The obvious disadvantage of this solution is that business logic is in models which tightly couple us with django and Postgres.
 
-There is also quite popular and battle tested hacksoftware way [link](https://github.com/HackSoftware/Django-Styleguide). I also was implementing and using this approach. it separates more business logic from models not putting everything there or managers. I can reimplement solution if needed.
+`hackersoft` There is also quite popular and battle tested hacksoftware way [link](https://github.com/HackSoftware/Django-Styleguide). I implemented the incomplete just for demonstration.
 
 
 To run project just type:
