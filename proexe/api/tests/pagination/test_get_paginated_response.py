@@ -4,9 +4,10 @@ from django.test import TestCase
 from rest_framework import serializers
 from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
-from styleguide_example.api.pagination import LimitOffsetPagination, get_paginated_response
-from styleguide_example.users.models import BaseUser
-from styleguide_example.users.services import user_create
+
+from proexe.api.pagination import LimitOffsetPagination, get_paginated_response
+from proexe.users.models import BaseUser
+from proexe.users.services import user_create
 
 
 class ExampleListApi(APIView):

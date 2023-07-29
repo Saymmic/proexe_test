@@ -1,13 +1,17 @@
 from django.urls import path
 
-from proexe.dynamic_tables.api.views import TableCreateApi
+from proexe.dynamic_tables.api.views import (
+    DynamicTableListRowsCreateApi,
+    DynamicTableRowCreateApi,
+    TableCreateApi,
+    TableUpdateApi,
+)
 
 app_name = "dynamic_tables"
 
 urlpatterns = [
     path("table/", TableCreateApi.as_view(), name="create"),
-    # path("<int:course_id>/", CourseDetailApi.as_view(), name="detail"),
-    # path("create/", CourseCreateApi.as_view(), name="create"),
-    # path("<int:course_id>/update/", CourseUpdateApi.as_view(), name="update"),
-    # path("<int:course_id>/specific-action/", CourseSpecificActionApi.as_view(), name="specific-action"),
+    path("table/<str:pk>/", TableUpdateApi.as_view(), name="update"),
+    path("table/<str:pk>/row/", DynamicTableRowCreateApi.as_view(), name="create_row"),
+    path("table/<str:pk>/rows/", DynamicTableListRowsCreateApi.as_view(), name="list_rows"),
 ]
